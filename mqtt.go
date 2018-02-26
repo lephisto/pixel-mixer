@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 	"time"
+	"encoding/hex"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -86,30 +85,17 @@ func startMqtt(config *Config, mixerOutputEnabler chan bool, mixerInputSelector 
 }
 
 func parseColor(message string) (*Color, *string) {
-	rgbStrings := strings.Split(message, ",")
 
-	if len(rgbStrings) != 3 {
-		errorMessage := "There were not 3 comma separated values"
-		return nil, &errorMessage
-	}
+        r,err := hex.DecodeString(message[0:2])
+        g,err := hex.DecodeString(message[2:4])
+        b,err := hex.DecodeString(message[4:6])
 
-	r, err := strconv.Atoi(rgbStrings[0])
-	if err != nil {
-		errorMessage := "Segment 1 was not a parseable integer"
-		return nil, &errorMessage
-	}
-	g, err := strconv.Atoi(rgbStrings[1])
-	if err != nil {
-		errorMessage := "Segment 2 was not a parseable integer"
-		return nil, &errorMessage
-	}
-	b, err := strconv.Atoi(rgbStrings[2])
-	if err != nil {
-		errorMessage := "Segment 3 was not a parseable integer"
-		return nil, &errorMessage
-	}
+        if err != nil {
+                errorMessage := "Invalid Hex"
+                return nil, &errorMessage
+        }
 
-	c := Color{uint8(r), uint8(g), uint8(b)}
+	c := Color{uint8(r[0]), uint8(g[0]), uint8(b[0])}
 
 	return &c, nil
 }
